@@ -181,6 +181,7 @@ int liballoc(struct pcb_t *proc, addr_t size, uint32_t reg_index)
 #ifdef IODUMP
   /* TODO dump IO content (if needed) */
 #ifdef PAGETBL_DUMP
+  printf("%s:%d\n", __func__, __LINE__);
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
 #endif
@@ -404,6 +405,7 @@ int libwrite(
   }
 #ifdef IODUMP
 #ifdef PAGETBL_DUMP
+  printf("%s:%d\n", __func__, __LINE__);
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
   MEMPHY_dump(proc->krnl->mram);
@@ -452,24 +454,45 @@ int free_pcb_memph(struct pcb_t *caller)
 int find_victim_page(struct mm_struct *mm, addr_t *retpgn)
 {
   struct pgn_t *pg = mm->fifo_pgn;
+  struct pgn_t *prev = NULL;
 
   /* TODO: Implement the theorical mechanism to find the victim page */
-  if (!pg)
-  {
-    return -1;
-  }
-  struct pgn_t *prev = NULL;
-  while (pg->pg_next)
-  {
+  if(pg == NULL) return -1;
+  //go to list end, victim is the last one
+  while(pg->pg_next != NULL) {
     prev = pg;
     pg = pg->pg_next;
   }
+  //set as victim
   *retpgn = pg->pgn;
-  prev->pg_next = NULL;
+  //remove from list
+  if(prev != NULL) {
+    prev->pg_next = NULL;
+  } else {
+    //only one element
+    mm->fifo_pgn = NULL;
+  }
 
   free(pg);
-
+  
   return 0;
+
+  // if (!pg)
+  // {
+  //   return -1;
+  // }
+  // struct pgn_t *prev = NULL;
+  // while (pg->pg_next)
+  // {
+  //   prev = pg;
+  //   pg = pg->pg_next;
+  // }
+  // *retpgn = pg->pgn;
+  // prev->pg_next = NULL;
+
+  // free(pg);
+
+  // return 0;
 }
 
 /*get_free_vmrg_area - get a free vm region

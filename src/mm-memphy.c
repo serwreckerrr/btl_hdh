@@ -173,6 +173,14 @@ int MEMPHY_dump(struct memphy_struct *mp)
   /*TODO dump memphy contnt mp->storage
    *     for tracing the memory content
    */
+  if(mp == NULL || mp->storage == NULL) return -1;
+  //printf("MEMPHY Dump (Size: %d):\n", mp->maxsz);
+   for (int i = 0; i < mp->maxsz; i++) {
+       if (mp->storage[i] != 0) {
+           printf("[%d]: %02x ", i, mp->storage[i]);
+       }
+   }
+   printf("\n");
    return 0;
 }
 

@@ -85,7 +85,7 @@ struct pcb_t * get_mlq_proc(void) {
 				slot[i] = MAX_PRIO - i; 
 			}
 			for(i = 0; i < MAX_PRIO; i++) {
-				if(!empty(&mlq_ready_queue[i] && slot[i] > 0)) {
+				if((slot[i] > 0) && !empty(&mlq_ready_queue[i])) {
 					proc = dequeue(&mlq_ready_queue[i]);
 					slot[i]--;
 					break;
@@ -151,6 +151,15 @@ struct pcb_t * get_proc(void) {
 	 *       It worth to protect by a mechanism.
 	 * 
 	 */
+	if (!empty(&run_queue)) {
+        proc = dequeue(&run_queue);
+    } else if (!empty(&ready_queue)) {
+        proc = dequeue(&ready_queue);
+    }
+
+    if (proc != NULL) {
+        enqueue(&running_list, proc);
+    }
 
 	pthread_mutex_unlock(&queue_lock);
 

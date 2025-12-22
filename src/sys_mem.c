@@ -26,12 +26,40 @@ int __sys_memmap(struct krnl_t *krnl, uint32_t pid, struct sc_regs* regs)
 {
    int memop = regs->a1;
    BYTE value;
+   int i;
+   struct pcb_t *caller = NULL;
    
    /* TODO THIS DUMMY CREATE EMPTY PROC TO AVOID COMPILER NOTIFY 
     *      need to be eliminated
 	*/
-   struct pcb_t *caller = malloc(sizeof(struct pcb_t));
+   //struct pcb_t *caller = malloc(sizeof(struct pcb_t));
 
+   //check running proc list
+   if(krnl->running_list->size > 0){
+       //look in queue
+       for(i=0; i < krnl->running_list->size; i++){
+           if(krnl->running_list->proc[i] && krnl->running_list->proc[i]->pid == pid){
+               caller = krnl->running_list->proc[i];
+               break;
+           }
+       }
+   }
+
+   //check ready queue if not found
+   if(caller == NULL){
+       //look in queue
+       for(i=0; i < krnl->ready_queue->size; i++){
+           if(krnl->ready_queue->proc[i] && krnl->ready_queue->proc[i]->pid == pid){
+               caller = krnl->ready_queue->proc[i];
+               break;
+           }
+       }
+   }
+
+   //not found
+    if(caller == NULL){
+        return -1;
+    }
    /*
     * @bksysnet: Please note in the dual spacing design
     *            syscall implementations are in kernel space.
